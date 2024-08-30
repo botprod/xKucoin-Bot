@@ -20,7 +20,7 @@ class xKucoin:
         self.account = session_name + '.session'
         self.user_id = None
         self.thread = thread
-        self.proxy = f"{ config.PROXY['TYPE']['REQUESTS']}://{proxy}" if proxy is not None else None
+        self.proxy = f"{config.PROXY['TYPE']['REQUESTS']}://{proxy}" if proxy is not None else None
         connector = ProxyConnector.from_url(self.proxy) if proxy else aiohttp.TCPConnector(verify_ssl=False)
 
         if proxy:
@@ -85,7 +85,8 @@ class xKucoin:
             await self.logout()
             return None
 
-        resp = await self.session.post('https://www.kucoin.com/_api/platform-telebot/game/login?lang=en_US', json=json_data)
+        resp = await self.session.post('https://www.kucoin.com/_api/platform-telebot/game/login?lang=en_US',
+                                       json=json_data)
         self.session.cookie_jar.update_cookies(resp.cookies)
 
     async def get_tg_web_data(self):
@@ -94,22 +95,25 @@ class xKucoin:
 
             web_view = await self.client.invoke(RequestAppWebView(
                 peer=await self.client.resolve_peer('xkucoinbot'),
-                app=InputBotAppShortName(bot_id=await self.client.resolve_peer('xkucoinbot'), short_name="kucoinminiapp"),
+                app=InputBotAppShortName(bot_id=await self.client.resolve_peer('xkucoinbot'),
+                                         short_name="kucoinminiapp"),
                 platform='android',
                 write_allowed=True,
-                start_param='cm91dGU9JTJGdGFwLWdhbWUlM0ZpbnZpdGVyVXNlcklkJTNENjAwODIzOTE4MiUyNnJjb2RlJTNE' if random.random() <= 0.4 else config.REF_LINK.split('startapp=')[1]
+                start_param=config.REF_LINK.split('startapp=')[1]
             ))
             await self.client.disconnect()
             auth_url = web_view.url
 
             params = parse_qs(unquote(unquote(urlparse(auth_url).fragment.split('tgWebAppData=')[1])))
 
-            auth_date, chat_instance, chat_type = params['auth_date'][0], params['chat_instance'][0], params['chat_type'][0]
+            auth_date, chat_instance, chat_type = params['auth_date'][0], params['chat_instance'][0], \
+            params['chat_type'][0]
             hash_, start_param = params['hash'][0], params['start_param'][0]
             start_param = start_param if start_param.endswith('=') else start_param + '='
 
             json_data = {
-                "inviterUserId": re.search(r"inviterUserId%3D(\d+)", base64.b64decode(start_param).decode('utf-8')).group(1),
+                "inviterUserId": re.search(r"inviterUserId%3D(\d+)",
+                                           base64.b64decode(start_param).decode('utf-8')).group(1),
                 "extInfo": {
                     "hash": hash_,
                     "auth_date": str(auth_date),
